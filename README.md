@@ -1,10 +1,10 @@
 # AdbAppDroid v5.0 📱🚀
 
 <p align="center">
-  <img src="AdbAppDroidInterfaz.png" width="700" alt="AdbAppDroid Interfaz">
+  <img src="AdbAppDroidInterfaz.png" width="750" alt="AdbAppDroid Interfaz">
 </p>
 
-**AdbAppDroid** es una potente herramienta portable y modular diseñada para la gestión avanzada de dispositivos Android a través de ADB. Con una interfaz moderna, ofrece una experiencia fluida y profesional para desarrolladores y usuarios avanzados.
+**AdbAppDroid** Es una potente herramienta portable, diseñada para la gestión de dispositivos Android a través de ADB. Cuenta con una interfaz que ofrece una experiencia fluida y profesional para usuarios entusiastas y avanzados.
 
 ---
 
@@ -71,7 +71,7 @@ Puedes encontrar guías específicas en la carpeta `docs/`:
 ## 👤 Créditos y Desarrollador
 
 Desarrollado por **QWERTY-ASERTY**
-🌐 [qwertyaserty.com](https://qwertyaserty.com/)
+🌐 [Rider Calcina](https://qwertyaserty.com/)
 
 ---
 *Nota: Esta herramienta está diseñada para facilitar la administración de dispositivos. Úsela con responsabilidad, especialmente al manipular aplicaciones del sistema.*
