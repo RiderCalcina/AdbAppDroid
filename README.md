@@ -1,5 +1,9 @@
 # AdbAppDroid v5.0 📱🚀
 
+<p align="center">
+  <img src="AdbAppDroidInterfaz.jpg" width="650" alt="AdbAppDroid Interfaz">
+</p>
+
 **AdbAppDroid** es una potente herramienta portable y modular diseñada para la gestión avanzada de dispositivos Android a través de ADB. Con una interfaz moderna bajo el concepto **"Premium Dark Mode 2026"**, ofrece una experiencia fluida y profesional para desarrolladores y usuarios avanzados.
 
 ---
