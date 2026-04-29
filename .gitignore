@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches and logs
+cache/
+activity_log.txt
+app.log
+
+# Build and Distribution artifacts (compiled versions)
+Archivos/
+*.build/
+*.dist/
+*.zip
+
+# User-specific config
+config.ini
+
+# IDEs
+.vscode/
+.idea/
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+
+# Mantener herramientas binarias solicitadas (en la raíz)
+!platform-tools/
+!scrcpy/

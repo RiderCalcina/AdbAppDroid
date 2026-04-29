@@ -1,0 +1,5 @@
+customtkinter==5.2.2
+Pillow
+adbutils
+feedparser
+requests

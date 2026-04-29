@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manual Técnico Detallado – AdbAppDroid v4.2</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --text: #222;
+      --accent: #2563eb;
+      --light-accent: #dbeafe;
+      --border: #e2e8f0;
+      --code-bg: #f1f5f9;
+      --danger: #dc2626;
+      --success: #059669;
+      --warning: #d97706;
+      --gray: #64748b;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    h1, h2, h3, h4 {
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.4rem;
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+    h2 {
+      border-left: 4px solid var(--accent);
+      padding-left: 0.75rem;
+      margin-top: 2.5rem;
+    }
+    h3 {
+      margin-top: 1.5rem;
+      font-size: 1.3rem;
+    }
+    h4 {
+      margin-top: 1.2rem;
+      font-size: 1.1rem;
+      color: #1e293b;
+    }
+    p, li, td, th {
+      margin-bottom: 1rem;
+    }
+    .section {
+      background: white;
+      padding: 1.8rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      margin-bottom: 2.5rem;
+    }
+    .note, .warning, .info {
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1.2rem 0;
+    }
+    .note {
+      background: var(--light-accent);
+      border-left: 4px solid var(--accent);
+    }
+    .warning {
+      background: #fef3c7;
+      border-left: 4px solid var(--warning);
+      color: #92400e;
+    }
+    .info {
+      background: #e0f2fe;
+      border-left: 4px solid #0ea5e9;
+    }
+    .code {
+      background: var(--code-bg);
+      padding: 1rem;
+      border-radius: 6px;
+      font-family: Consolas, monospace;
+      overflow-x: auto;
+      margin: 1rem 0;
+      font-size: 0.95rem;
+    }
+    pre {
+      margin: 0;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 1.2rem 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+      margin-bottom: 1.2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    th {
+      background: var(--light-accent);
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--gray);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem;
+    }
+    .func-signature {
+      font-family: Consolas, monospace;
+      background: #eef2ff;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      color: #1e3a8a;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Manual Técnico Detallado<br>AdbAppDroid v4.2</h1>
+
+  <div class="section">
+    <h2>1. Visión General del Sistema</h2>
+    <p>
+      <strong>ADBAppKiller</strong> es una aplicación de escritorio para Windows que permite monitorear en tiempo real la aplicación activa en un dispositivo Android conectado por USB con <strong>Depuración USB activada</strong>. Aprovecha el protocolo <strong>ADB (Android Debug Bridge)</strong> para:
+    </p>
+    <ul>
+      <li>Identificar la app en primer plano con múltiples métodos redundantes.</li>
+      <li>Extraer metadatos del paquete: nombre, versión, permisos, rutas de APKs, etc.</li>
+      <li>Clasificar si es app de <em>usuario</em> o de <em>sistema</em> mediante heurísticas robustas.</li>
+      <li>Ejecutar acciones seguras: desinstalar, limpiar datos, extraer APKs, instalar y control remoto.</li>
+    </ul>
+    <p>
+      La app es 100% <strong>portable</strong>: no requiere instalación ni variables de entorno. Busca <code>adb.exe</code> y <code>scrcpy.exe</code> exclusivamente en:
+    </p>
+    <div class="code">
+platform-tools/adb.exe<br>
+scrcpy/scrcpy.exe
+    </div>
+    <p>
+      Si no existen, ofrece instalarlos localmente sin privilegios administrativos.
+    </p>
+    <!-- IMAGEN: Estructura de directorios portátiles -->
+  </div>
+
+  <div class="section">
+    <h2>2. Arquitectura y Concurrencia</h2>
+    <h3>Hilos y Gestión de Eventos</h3>
+    <p>
+      La interfaz de usuario (Tkinter) se mantiene responsiva mediante el uso de hilos (<code>threading.Thread</code>). Las operaciones bloqueantes se ejecutan en segundo plano:
+    </p>
+    <table>
+      <tr><th>Hilo</th><th>Función</th><th>Intervalo/Frecuencia</th></tr>
+      <tr>
+        <td><code>monitor_loop</code></td>
+        <td>Consulta cada 1.5 segundos qué app está activa usando ADB.</td>
+        <td>Cíclico (1.5s)</td>
+      </tr>
+      <tr>
+        <td><code>enhanced_device_monitoring</code></td>
+        <td>Comprueba cada 3s si el dispositivo sigue conectado y autorizado.</td>
+        <td>Cíclico (3s)</td>
+      </tr>
+      <tr>
+        <td><code>_full_initialization</code></td>
+        <td>Carga inicial: paquetes del sistema/usuario, ADB, scrcpy.</td>
+        <td>Una vez al inicio</td>
+      </tr>
+      <tr>
+        <td><code>acción específica</code></td>
+        <td>Desinstalar, extraer APK, instalar, etc.</td>
+        <td>Por demanda del usuario</td>
+      </tr>
+    </table>
+    <p>
+      Todas las actualizaciones de la UI se realizan mediante <code>root.after(0, función)</code> para evitar violar el hilo principal de Tkinter.
+    </p>
+
+    <h3>Caché Inteligente</h3>
+    <p>
+      Para reducir el uso de ADB y mejorar el rendimiento, se implementa un caché en memoria:
+    </p>
+    <ul>
+      <li><code>dumpsys_cache</code>: almacena el resultado de <code>adb shell dumpsys package [pkg]</code> por 2 segundos.</li>
+      <li><code>packages_system</code> y <code>packages_user</code>: listas de paquetes obtenidas una vez al inicio y actualizadas tras cambios (ej. desinstalación).</li>
+    </ul>
+    <p>
+      El caché se limpia automáticamente si supera 50 entradas, evitando fugas de memoria.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>3. Detección de Aplicación Activa</h2>
+    <p>
+      El método <span class="func-signature">get_foreground_app()</span> intenta hasta tres estrategias para obtener el paquete activo:
+    </p>
+    <ol>
+      <li><strong><code>cmd activity top-activities</code></strong><br>
+          → Extrae la primera actividad con regex: <code>r"([a-zA-Z0-9._]+)/[a-zA-Z0-9._$]+"</code>.</li>
+      <li><strong><code>dumpsys activity activities</code></strong><br>
+          → Busca "<code>ResumedActivity</code>" o "<code>mResumedActivity</code>".</li>
+      <li><strong><code>dumpsys window windows</code></strong><br>
+          → Busca "<code>mCurrentFocus</code>" o "<code>mFocusedApp</code>".</li>
+    </ol>
+    <p>
+      Filtra paquetes inválidos, launchers y SystemUI. Solo retorna paquetes con formato válido según la regex:
+    </p>
+    <div class="code">
+re.fullmatch(r'[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)*', pkg)
+    </div>
+    <p>
+      Si fallan los tres métodos, devuelve <code>None</code> y la UI muestra “Esperando detección…”.
+    </p>
+    <!-- IMAGEN: Interfaz con app detectada y sin detectar -->
+  </div>
+
+  <div class="section">
+    <h2>4. Clasificación de Aplicaciones: Sistema vs Usuario</h2>
+    <p>
+      El método <span class="func-signature">is_system_app_robust(pkg, apk_path, installer, uid, flags)</span> aplica múltiples criterios:
+    </p>
+    <table>
+      <tr><th>Criterio</th><th>Descripción</th><th>Ejemplo</th></tr>
+      <tr>
+        <td>Ruta del APK</td>
+        <td>Si comienza con <code>/system/</code>, <code>/product/</code> o <code>/system_ext/</code> → sistema.</td>
+        <td><code>/system/app/Settings/Settings.apk</code></td>
+      </tr>
+      <tr>
+        <td>UID del proceso</td>
+        <td>Si <code>userId < 10000</code> → sistema (UIDs de usuario empiezan en 10000).</td>
+        <td>UID 1001 = sistema</td>
+      </tr>
+      <tr>
+        <td>Flags de paquete</td>
+        <td>Si contiene "<code>SYSTEM</code>" → sistema.</td>
+        <td><code>flags=[SYSTEM, HAS_CODE, ...]</code></td>
+      </tr>
+      <tr>
+        <td>Instalador</td>
+        <td>Si instalador es Play Store o PackageInstaller → usuario.</td>
+        <td><code>com.android.vending</code></td>
+      </tr>
+      <tr>
+        <td>Base de datos local</td>
+        <td>Compara contra listas cargadas al inicio: <code>packages_system</code> y <code>packages_user</code>.</td>
+        <td>Obtenidas con <code>pm list packages -s</code> y <code>-3</code></td>
+      </tr>
+    </table>
+    <p>
+      Este enfoque híbrido evita errores comunes en ROMs personalizadas (MIUI, OxygenOS, etc.).
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>5. Funcionalidades Principales – Desglose Técnico</h2>
+
+    <!-- DESINSTALAR -->
+    <h3>5.1. Desinstalar Aplicación (<code>uninstall_app</code>)</h3>
+    <ul>
+      <li><strong>Precondiciones</strong>: dispositivo conectado, app de usuario, confirmación del usuario.</li>
+      <li><strong>Comando ADB</strong>: <code>adb uninstall [package]</code> (timeout: 20s).</li>
+      <li><strong>Validación de éxito</strong>: verifica si la salida contiene "<code>Success</code>".</li>
+      <li><strong>Post-proceso</strong>: actualiza la caché de paquetes y limpia el estado actual.</li>
+    </ul>
+    <div class="warning">
+      ❌ Las apps de sistema <strong>no se pueden desinstalar</strong> (solo deshabilitar, pero eso no está implementado por seguridad).
+    </div>
+
+    <!-- EXTRAER APK -->
+    <h3>5.2. Extraer APK (<code>extract_apk</code>)</h3>
+    <ul>
+      <li><strong>Paso 1</strong>: obtiene rutas con <code>adb shell pm path [pkg]</code>.</li>
+      <li><strong>Paso 2</strong>: crea directorio temporal con <code>tempfile.mkdtemp()</code>.</li>
+      <li><strong>Paso 3</strong>: descarga cada APK con <code>adb pull [ruta_remota] [ruta_local]</code>.</li>
+      <li><strong>Paso 4</strong>:
+        <ul>
+          <li>Si hay 1 APK → guarda como <code>.apk</code>.</li>
+          <li>Si hay múltiples → empaqueta en ZIP y advierte al usuario que no es instalable directamente.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      Soporta App Bundles (split APKs), comunes en apps grandes como YouTube o Gmail.
+    </p>
+
+    <!-- INSTALAR APK/BUNDLE -->
+    <h3>5.3. Instalar APK o Bundle (<code>install_apk_bundle</code>)</h3>
+    <ul>
+      <li><strong>Selección</strong>: acepta <code>.apk</code> y <code>.zip</code>.</li>
+      <li><strong>Si es ZIP</strong>: lo descomprime y busca archivos <code>.apk</code> internos.</li>
+      <li><strong>Comando ADB</strong>: <code>adb install-multiple [apk1] [apk2] ...</code> (soporta bundles).</li>
+      <li><strong>Timeout</strong>: 120 segundos.</li>
+      <li><strong>Análisis de errores</strong>: método <code>_parse_install_error()</code> interpreta mensajes comunes.</li>
+    </ul>
+    <p>
+      Mensajes de error traducidos a lenguaje humano (ej. “Espacio insuficiente”, “Versión más antigua”).
+    </p>
+
+    <!-- LIMPIAR DATOS -->
+    <h3>5.4. Limpiar Datos (<code>clear_app_data</code>)</h3>
+    <ul>
+      <li><strong>Comando</strong>: <code>adb shell pm clear [package]</code>.</li>
+      <li><strong>Efecto</strong>: borra <code>/data/data/[pkg]</code> y restablece la app como si fuera la primera ejecución.</li>
+      <li><strong>Confirmación</strong>: requiere confirmación del usuario.</li>
+    </ul>
+
+    <!-- EXPORTAR INFORME -->
+    <h3>5.5. Exportar Informe (<code>export_report</code>)</h3>
+    <p>
+      Genera un archivo de texto estructurado con:
+    </p>
+    <ul>
+      <li>Información del dispositivo (marca, modelo, serie).</li>
+      <li>Metadatos de la app (nombre, paquete, versión, permisos, etc.).</li>
+      <li>Registro de eventos recientes (hasta 15 entradas).</li>
+    </ul>
+    <p>
+      Útil para auditorías de seguridad o diagnóstico técnico.
+    </p>
+
+    <!-- LANZAR SCRCYPY -->
+    <h3>5.6. Lanzar scrcpy (<code>launch_scrcpy</code>)</h3>
+    <ul>
+      <li><strong>Posicionamiento automático</strong>: abre la ventana justo a la derecha de la app.</li>
+      <li><strong>Parámetros</strong>:
+        <div class="code">
+--max-size=1024 --video-bit-rate=4M --max-fps=30<br>
+--stay-awake --disable-screensaver<br>
+--window-x=[posición] --window-y=[posición]
+        </div>
+      </li>
+      <li><strong>Proceso hijo</strong>: se guarda en <code>scrcpy_process</code> para poder terminarlo al cerrar.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>6. Gestión de ADB y scrcpy</h2>
+    <h3>6.1. Detección Local</h3>
+    <p>
+      Los métodos <code>get_adb_executable()</code> y <code>get_scrcpy_executable()</code> <strong>solo buscan en el directorio de la app</strong>, garantizando portabilidad.
+    </p>
+    <h3>6.2. Instalación Automática</h3>
+    <ul>
+      <li><strong>ADB</strong>: descarga <code>platform-tools-latest-windows.zip</code> desde Google y lo extrae en la raíz.</li>
+      <li><strong>scrcpy</strong>: consulta la API de GitHub para obtener la última versión y descarga el ZIP correspondiente.</li>
+    </ul>
+    <p>
+      Ambos procesos se ejecutan en hilos separados y actualizan la UI en tiempo real.
+    </p>
+    <div class="info">
+      🔒 Nunca modifica el sistema ni instala en <code>C:\Windows</code> o <code>Program Files</code>.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>7. Seguridad y Robustez</h2>
+    <ul>
+      <li><strong>Validación de paquetes</strong>: solo permite operar con nombres que cumplan con el estándar de Android.</li>
+      <li><strong>Permisos peligrosos</strong>: se define un conjunto fijo (<code>PELIGROSOS</code>) y se resaltan visualmente.</li>
+      <li><strong>Timeouts y reintentos</strong>: cada comando ADB tiene timeout (5-120s) y hasta 2 reintentos.</li>
+      <li><strong>Codificación UTF-8</strong>: manejo explícito para evitar fallos en dispositivos con caracteres no ASCII.</li>
+      <li><strong>Limpieza al salir</strong>: termina scrcpy y ejecuta <code>adb kill-server</code>.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>8. Interfaz de Usuario (UI)</h2>
+    <p>
+      Diseño oscuro con contrastes altos. Elementos clave:
+    </p>
+    <ul>
+      <li><strong>Etiqueta superior</strong>: muestra el paquete activo en verde brillante.</li>
+      <li><strong>Panel de información</strong>: texto estructurado con colores por tipo de permiso.</li>
+      <li><strong>Barra de estado</strong>: indica operaciones en curso (“Extrayendo APK…”, “Instalando…”).</li>
+      <li><strong>Botones de acción</strong>: deshabilitados durante operaciones para evitar conflictos.</li>
+      <li><strong>Mensajes de error</strong>: en rojo, con sugerencias (ej. “Acepta la clave RSA”).</li>
+    </ul>
+    <!-- IMAGEN: Vista completa de la UI con todos los elementos -->
+  </div>
+
+  <div class="section">
+    <h2>9. Dependencias y Requisitos</h2>
+    <h3>9.1. Requisitos Mínimos</h3>
+    <ul>
+      <li>Windows 7+ (64 bits recomendado).</li>
+      <li>Python no necesario (aplicación empaquetada con PyInstaller).</li>
+      <li>Dispositivo Android con USB Debugging activado.</li>
+    </ul>
+    <h3>9.2. Componentes Incluidos/Instalables</h3>
+    <table>
+      <tr><th>Componente</th><th>Fuente</th><th>Ruta Local</th></tr>
+      <tr><td>ADB</td><td>Google</td><td><code>platform-tools/adb.exe</code></td></tr>
+      <tr><td>scrcpy</td><td>GitHub (Genymobile)</td><td><code>scrcpy/scrcpy.exe</code></td></tr>
+      <tr><td>Icono</td><td>Recurso empaquetado</td><td><code>aak.ico</code></td></tr>
+    </table>
+  </div>
+
+  <footer>
+    <p>Manual técnico detallado de AdbAppDroid v4.2 — QWERTY-ASERTY</p>
+    <p>Actualizado: Febrero 2026 | Basado en código fuente v4.2</p>
+  </footer>
+
+</body>
+</html>
