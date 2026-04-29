@@ -1,5 +1,9 @@
 # AdbAppDroid v5.0 📱🚀
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20ADB%20Device-lightgrey.svg)
+
 <p align="center">
   <img src="AdbAppDroidInterfaz.png" width="750" alt="AdbAppDroid Interfaz">
 </p>
