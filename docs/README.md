@@ -1,4 +1,4 @@
-# Documentación de AdbAppDroid v5.0
+# Documentación de AdbAppDroid v5.1
 
 Bienvenido a la documentación oficial de **AdbAppDroid**. Este proyecto es una herramienta potente y portable diseñada para gestionar aplicaciones en dispositivos Android a través de la interfaz ADB (Android Debug Bridge), con soporte multi-dispositivo e integración de scrcpy para espejo de pantalla.
 
@@ -12,7 +12,7 @@ Bienvenido a la documentación oficial de **AdbAppDroid**. Este proyecto es una 
 
 ## 🚀 Propósito del Proyecto
 
-AdbAppDroid v5.0 permite a los usuarios:
+AdbAppDroid v5.1 permite a los usuarios:
 - **Soporte Multi-Dispositivo**: Gestiona múltiples terminales conectados simultáneamente.
 - **Selector Activo**: Interfaz con menú desplegable para alternar el control entre dispositivos.
 - **Rediseño Horizontal**: Nueva disposición optimizada con logs a la izquierda y controles a la derecha.

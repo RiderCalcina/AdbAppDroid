@@ -1,6 +1,6 @@
 # Estructura del Proyecto
 
-AdbAppDroid v5.0 utiliza una arquitectura modular diseñada para la gestión multi-dispositivo simultánea. A continuación se describe el propósito de cada directorio y archivo clave.
+AdbAppDroid v5.1 utiliza una arquitectura modular diseñada para la gestión multi-dispositivo simultánea. A continuación se describe el propósito de cada directorio y archivo clave.
 
 ## 📂 Directorio Raíz
 
