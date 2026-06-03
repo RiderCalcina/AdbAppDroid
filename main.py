@@ -27,7 +27,7 @@ def setup_logging():
 
 if __name__ == "__main__":
     setup_logging()
-    logging.info("Iniciando AdbAppDroid (v4.5)")
+    logging.info("Iniciando AdbAppDroid (v5.1)")
     app = MainWindow()
     app.mainloop()
     logging.info("Aplicación cerrada de forma normal")
