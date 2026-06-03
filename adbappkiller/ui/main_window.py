@@ -4,7 +4,7 @@ import time
 import os
 import subprocess
 from tkinter import messagebox, filedialog
-from .components import AppInfoWidget, CTKToolTip, RSSFeedWidget, CTkWarningDialog, RSSMarqueeWidget, CPUGraphWidget
+from .components import AppInfoWidget, CTKToolTip, RSSFeedWidget, CTkWarningDialog, RSSMarqueeWidget, CPUGraphWidget, CTkPairingDialog
 from .process_monitor import ProcessMonitorWindow
 from ..core.adb_controller import ADBController
 from ..core.downloader import Downloader
@@ -118,7 +118,7 @@ class MainWindow(ctk.CTk):
 
         self.app_label = ctk.CTkLabel(
             self.header_frame, text="Esperando detección...", 
-            font=("Segoe UI", 18, "bold"), text_color=THEME["SUCCESS"],
+            font=("Segoe UI", 13, "bold"), text_color=THEME["SUCCESS"],
             anchor="w", justify="left")
         self.app_label.pack(side="left", fill="x", expand=True)
 
@@ -144,7 +144,12 @@ class MainWindow(ctk.CTk):
         self.wifi_frame.grid_columnconfigure(4, weight=1)
         
         # WiFi - Título integrado en la primera fila para ahorrar espacio
-        ctk.CTkLabel(self.wifi_frame, text="📡 CONEXIÓN POR DEPURACIÓN INALÁMBRICA", font=("Segoe UI", 10, "bold"), text_color=THEME["TEXT_SEC"]).grid(row=0, column=0, columnspan=2, padx=10, sticky="w", pady=(5,0))
+        self.lbl_wifi_title = ctk.CTkLabel(self.wifi_frame, text="📡 CONEXIÓN POR DEPURACIÓN INALÁMBRICA", font=("Segoe UI", 10, "bold"), text_color=THEME["TEXT_SEC"])
+        self.lbl_wifi_title.grid(row=0, column=0, columnspan=3, padx=10, sticky="w", pady=(5,0))
+        
+        self.btn_open_pair = ctk.CTkLabel(self.wifi_frame, text="Emparejar dispositivo nuevo", font=("Segoe UI", 10, "bold", "underline"), text_color=THEME["ACCENT"], cursor="hand2")
+        self.btn_open_pair.grid(row=0, column=4, columnspan=3, padx=(2, 10), pady=(5, 0), sticky="e")
+        self.btn_open_pair.bind("<Button-1>", lambda e: self.open_pairing_dialog())
         
         ctk.CTkLabel(self.wifi_frame, text="IP:", font=("Segoe UI", 11), text_color=THEME["TEXT_MAIN"]).grid(row=1, column=0, padx=(10, 2), pady=(5, 10))
         self.wifi_ip_entry = ctk.CTkEntry(self.wifi_frame, placeholder_text="192.168.1.5", placeholder_text_color=THEME["TEXT_SEC"], width=120, height=28, fg_color=THEME["BG"], border_color=THEME["BORDER"], text_color=THEME["TEXT_MAIN"], corner_radius=6, font=("Segoe UI", 11))
@@ -347,6 +352,13 @@ class MainWindow(ctk.CTk):
         else:
             self.disconnect_wifi()
 
+    def open_pairing_dialog(self):
+        default_ip = self.wifi_ip_entry.get().strip() or "192.168.1."
+        dialog = CTkPairingDialog(self, self.adb, default_ip)
+        success = dialog.get_result()
+        if success:
+            self.add_log("📱 Dispositivo emparejado con éxito. Ahora introduce el puerto de conexión y haz clic en Conectar.")
+
     def connect_wifi(self):
         ip = self.wifi_ip_entry.get()
         port = self.wifi_port_entry.get() or "5555"
@@ -449,7 +461,7 @@ class MainWindow(ctk.CTk):
                     
                     msg = f"VÍA {active_type}"
                     if "WiFi" in types and "USB" in types:
-                        msg = f"{msg} (MÚLTIPLES DISP.)"
+                        msg = f"{msg} (MULT.)"
                         
                     self.after(0, lambda m=msg: self.conn_type_label.configure(text=m, text_color=THEME["TEXT_MAIN"]))
                     
@@ -507,7 +519,10 @@ class MainWindow(ctk.CTk):
             return
         
         # UI Feedback inmediato
-        self.app_label.configure(text=f"App: {pkg}")
+        display_pkg = pkg
+        if len(display_pkg) > 38:
+            display_pkg = display_pkg[:35] + "..."
+        self.app_label.configure(text=f"App: {display_pkg}")
         self.app_icon_label.configure(image=None)
         self.info_widget.log("Cargando detalles...")
 
@@ -586,11 +601,10 @@ class MainWindow(ctk.CTk):
         else:
             self.after(0, lambda: self.app_icon_label.configure(image=None))
 
-
     def uninstall(self):
         if not self.current_app: return
         
-        details = self.adb.get_app_details(self.current_app)
+        details = self.adb.get_app_details(self.active_serial, self.current_app)
         is_system = details.get("is_system", False)
         
         if is_system:
@@ -604,7 +618,7 @@ class MainWindow(ctk.CTk):
         self.progress.set(0.5)
         def task():
             target = self.current_app
-            code, out, _ = self.adb.uninstall_app(self.active_serial, target)
+            code, out, _ = self.adb.uninstall_app(self.active_serial, target, is_system=is_system)
             self.progress.set(1)
             self.add_log(f"🗑 Desinstalación: {out.strip()}")
             self.log_activity(f"Desinstaló aplicación: {target} -> {out.strip()}")
@@ -615,7 +629,7 @@ class MainWindow(ctk.CTk):
     def disable_app(self):
         if not self.current_app: return
         
-        details = self.adb.get_app_details(self.current_app)
+        details = self.adb.get_app_details(self.active_serial, self.current_app)
         is_system = details.get("is_system", False)
         
         if is_system:
@@ -640,37 +654,112 @@ class MainWindow(ctk.CTk):
     def extract(self):
         if not self.current_app: return
         
-        # Sincronización de ruta con ajustes
+        details = self.adb.get_app_details(self.active_serial, self.current_app)
+        apks = details.get("apk_paths", [])
+        if not apks:
+            self.add_log("❌ Error: No se encontraron las rutas APK para extraer.")
+            return
+        
         initial_dir = self.history.get_output_dir()
         
-        path = filedialog.asksaveasfilename(
-            defaultextension=".apk", 
-            initialdir=initial_dir,
-            initialfile=f"{self.current_app}.apk",
-            title="Extraer APK"
-        )
-        if not path: return
+        if len(apks) > 1:
+            # Es una Split App, sugerimos guardar como ZIP
+            path = filedialog.asksaveasfilename(
+                defaultextension=".zip", 
+                initialdir=initial_dir,
+                initialfile=f"{self.current_app}.zip",
+                filetypes=[("Paquete de Aplicación Split (*.zip)", "*.zip"), ("Todos los archivos", "*.*")],
+                title="Extraer App Bundle (Split APKs)"
+            )
+        else:
+            # Es una app normal de un solo APK
+            path = filedialog.asksaveasfilename(
+                defaultextension=".apk", 
+                initialdir=initial_dir,
+                initialfile=f"{self.current_app}.apk",
+                filetypes=[("Archivo APK (*.apk)", "*.apk"), ("Todos los archivos", "*.*")],
+                title="Extraer APK"
+            )
         
-        details = self.adb.get_app_details(self.current_app)
-        apks = details.get("apk_paths", [])
-        if not apks: return
+        if not path: return
 
         self.progress.set(0.1)
         def task():
-            # Simplificado: solo el primero por ahora o aviso si son varios
-            if len(apks) > 1: self.add_log("⚠️ App múltiple, extrayendo base...")
-            code, out, err = self.adb.pull_file(self.active_serial, apks[0], path)
-            self.progress.set(1)
-            self.add_log(f"💾 Extraído: {os.path.basename(path)}")
-            self.log_activity(f"Extrajo APK: {self.current_app} -> {os.path.basename(path)}")
+            import tempfile
+            import zipfile
+            import shutil
+
+            if len(apks) > 1:
+                self.add_log(f"📦 Aplicación dividida detectada ({len(apks)} partes). Extrayendo completa...")
+                temp_dir = tempfile.mkdtemp(prefix="adb_extract_")
+                try:
+                    pulled_apks = []
+                    total = len(apks)
+                    for idx, remote_apk in enumerate(apks):
+                        progress_val = 0.1 + (idx / total) * 0.7
+                        self.progress.set(progress_val)
+                        
+                        filename = os.path.basename(remote_apk)
+                        # Forzar nombres descriptivos si son idénticos o genéricos (ej. base.apk, split_config.apk)
+                        if filename == "base.apk" and idx > 0:
+                           filename = f"split_{idx}.apk"
+                        local_apk_path = os.path.join(temp_dir, filename)
+                        
+                        code, out, err = self.adb.pull_file(self.active_serial, remote_apk, local_apk_path)
+                        if code == 0 and os.path.exists(local_apk_path):
+                            pulled_apks.append(local_apk_path)
+                        else:
+                            self.add_log(f"⚠️ Error al extraer parte: {filename}")
+
+                    if not pulled_apks:
+                        self.add_log("❌ Error: No se pudo extraer ninguna parte de la aplicación.")
+                        return
+                    
+                    # Comprimir todas las partes en un ZIP
+                    self.progress.set(0.9)
+                    with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                        for apk in pulled_apks:
+                            zip_file.write(apk, os.path.basename(apk))
+                            
+                    self.progress.set(1)
+                    self.add_log(f"💾 Extraído Bundle completo (ZIP): {os.path.basename(path)}")
+                    self.log_activity(f"Extrajo App Bundle: {self.current_app} -> {os.path.basename(path)}")
+                except Exception as e:
+                    self.add_log(f"❌ Error al empaquetar bundle: {e}")
+                finally:
+                    shutil.rmtree(temp_dir, ignore_errors=True)
+            else:
+                # Descargar el único APK directamente
+                code, out, err = self.adb.pull_file(self.active_serial, apks[0], path)
+                self.progress.set(1)
+                if code == 0:
+                    self.add_log(f"💾 Extraído APK: {os.path.basename(path)}")
+                    self.log_activity(f"Extrajo APK: {self.current_app} -> {os.path.basename(path)}")
+                else:
+                    self.add_log(f"❌ Error al extraer APK: {err or out}")
+                    
             time.sleep(1)
             self.progress.set(0)
+            
         threading.Thread(target=task, daemon=True).start()
 
     def clear_data(self):
         if not self.current_app: return
-        if not messagebox.askyesno("Limpiar", "¿Borrar datos de la app?"): return
-        threading.Thread(target=lambda: self.adb.clear_app_data(self.active_serial, self.current_app), daemon=True).start()
+        if not messagebox.askyesno("Limpiar", f"¿Borrar todos los datos y caché de {self.current_app}?"): return
+        
+        self.progress.set(0.5)
+        def task():
+            target = self.current_app
+            code, out, err = self.adb.clear_app_data(self.active_serial, target)
+            self.progress.set(1)
+            if code == 0:
+                self.add_log(f"🧹 Datos limpiados: {target}")
+                self.log_activity(f"Limpió datos de la aplicación: {target}")
+            else:
+                self.add_log(f"❌ Error al limpiar datos: {err or out}")
+            time.sleep(1)
+            self.progress.set(0)
+        threading.Thread(target=task, daemon=True).start()
 
     def change_output_dir(self):
         path = filedialog.askdirectory(title="Seleccionar carpeta para capturas y videos")
@@ -891,8 +980,11 @@ class MainWindow(ctk.CTk):
         initial_dir = self.history.get_output_dir()
         path = filedialog.askopenfilename(
             initialdir=initial_dir,
-            filetypes=[("Archivos APK", "*.apk")],
-            title="Seleccionar APK para instalar"
+            filetypes=[
+                ("Archivos de Aplicación (*.apk, *.xapk, *.apks, *.zip)", "*.apk;*.xapk;*.apks;*.zip"),
+                ("Todos los archivos", "*.*")
+            ],
+            title="Seleccionar aplicación para instalar"
         )
         if not path: return
 
@@ -900,13 +992,16 @@ class MainWindow(ctk.CTk):
         self.progress.set(0.1)
         
         def task():
-            code, out, err = self.adb.install_apk(self.active_serial, path)
+            code, out, err = self.adb.install_app(self.active_serial, path)
             self.progress.set(1)
             if code == 0:
                 self.add_log(f"✅ Instalación exitosa: {os.path.basename(path)}")
-                self.log_activity(f"Instaló APK: {os.path.basename(path)}")
+                self.log_activity(f"Instaló APK/Bundle: {os.path.basename(path)}")
             else:
-                self.add_log(f"❌ Error al instalar: {err or out}")
+                err_msg = err or out
+                self.add_log(f"❌ Error al instalar: {err_msg.strip()}")
+                if "INSTALL_FAILED_MISSING_SPLIT" in err_msg:
+                    self.add_log("💡 Sugerencia: Este error ocurre si la app ya está instalada como 'Split APK' (de Play Store) o si el APK es solo una parte. Prueba desinstalando la app del celular primero e intenta de nuevo, o usa un archivo completo (.xapk / .apks).")
             time.sleep(1)
             self.progress.set(0)
             

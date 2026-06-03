@@ -82,8 +82,8 @@ class ADBController:
             for d in adbutils.adb.device_list():
                 serial = d.serial
                 status = d.info.get('state', 'unknown')
-                # Detectar tipo: WiFi suele tener formato IP:Puerto
-                is_wifi = ":" in serial and "." in serial
+                # Detectar tipo: WiFi suele tener formato IP:Puerto o mDNS TLS
+                is_wifi = (":" in serial and "." in serial) or "_tcp" in serial.lower() or "adb-" in serial.lower()
                 devices.append({
                     "serial": serial,
                     "status": status,
@@ -102,7 +102,7 @@ class ADBController:
                     parts = line.split('\t')
                     if len(parts) >= 2:
                         serial, status = parts[0], parts[1]
-                        is_wifi = ":" in serial and "." in serial
+                        is_wifi = (":" in serial and "." in serial) or "_tcp" in serial.lower() or "adb-" in serial.lower()
                         devices.append({
                             "serial": serial,
                             "status": status,
@@ -113,11 +113,23 @@ class ADBController:
     def connect_wireless(self, ip_port):
         return self.run_adb(["connect", ip_port])
 
+    def pair_wireless(self, ip_port, pairing_code):
+        return self.run_adb(["pair", ip_port, pairing_code])
+
     def disconnect_wireless(self, ip_port=None):
-        args = ["disconnect"]
         if ip_port:
-            args.append(ip_port)
-        return self.run_adb(args)
+            self.run_adb(["disconnect", ip_port])
+            
+        # Desconectar también cualquier dispositivo inalámbrico detectado para evitar fantasmas mDNS
+        try:
+            for dev in self.get_connected_devices():
+                if dev["type"] == "WiFi":
+                    self.run_adb(["disconnect", dev["serial"]])
+        except Exception:
+            pass
+            
+        # Cierre general de seguridad para desconectar todo lo inalámbrico
+        return self.run_adb(["disconnect"])
 
 
     def get_foreground_app(self, serial=None):
@@ -352,11 +364,50 @@ class ADBController:
         self.dumpsys_cache[pkg] = (now, details)
         return details
 
-    def uninstall_app(self, serial, pkg):
-        return self.run_adb(["-s", serial, "uninstall", pkg] if serial else ["uninstall", pkg], timeout=20)
+    def uninstall_app(self, serial, pkg, is_system=False):
+        if is_system:
+            return self.run_adb(["-s", serial, "shell", "pm", "uninstall", "-k", "--user", "0", pkg] if serial else ["shell", "pm", "uninstall", "-k", "--user", "0", pkg], timeout=20)
+        else:
+            return self.run_adb(["-s", serial, "uninstall", pkg] if serial else ["uninstall", pkg], timeout=20)
 
     def install_app(self, serial, apk_path):
+        ext = os.path.splitext(apk_path.lower())[1]
+        if ext in ('.zip', '.xapk', '.apks'):
+            return self.install_apk_archive(serial, apk_path)
         return self.run_adb(["-s", serial, "install", "-r", apk_path] if serial else ["install", "-r", apk_path], timeout=60)
+
+    def install_apk(self, serial, apk_path):
+        return self.install_app(serial, apk_path)
+
+    def install_apk_archive(self, serial, archive_path):
+        """Extrae un archivo .zip, .xapk o .apks e instala sus contenidos como split APKs."""
+        import tempfile
+        import zipfile
+        import shutil
+        
+        temp_dir = tempfile.mkdtemp(prefix="adb_split_")
+        try:
+            with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+                zip_ref.extractall(temp_dir)
+            
+            # Buscar todos los archivos .apk recursivamente
+            apk_files = []
+            for root, _, files in os.walk(temp_dir):
+                for file in files:
+                    if file.lower().endswith('.apk'):
+                        apk_files.append(os.path.join(root, file))
+            
+            if not apk_files:
+                return -1, "", "No se encontraron archivos APK dentro del archivo."
+            
+            # Ejecutar install-multiple
+            args = ["-s", serial, "install-multiple", "-r"] if serial else ["install-multiple", "-r"]
+            args.extend(apk_files)
+            return self.run_adb(args, timeout=120)
+        except Exception as e:
+            return -1, "", f"Error procesando el paquete: {e}"
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
     def clear_app_data(self, serial, pkg):
         return self.run_adb(["-s", serial, "shell", "pm", "clear", pkg] if serial else ["shell", "pm", "clear", pkg])
@@ -627,64 +678,6 @@ class ADBController:
         except Exception:
             pass
         return None
-
-
-    # ========== MÉTODOS DE USB TETHERING ==========
-    
-    def enable_usb_tethering(self, serial=None):
-        """Activa USB Tethering (Android → PC)"""
-        args = ["-s", serial, "shell", "svc", "usb", "setFunctions", "rndis"] if serial else ["shell", "svc", "usb", "setFunctions", "rndis"]
-        code, out, err = self.run_adb(args, timeout=10)
-        # En Samsung modernos, opId:1 indica que la operación se inició asíncronamente
-        if "opId" in out or "opId" in err:
-            return 0, out, err
-        return code, out, err
-
-    def disable_usb_tethering(self, serial=None):
-        """Desactiva USB Tethering y restaura modo MTP"""
-        args = ["-s", serial, "shell", "svc", "usb", "setFunctions", "mtp"] if serial else ["shell", "svc", "usb", "setFunctions", "mtp"]
-        code, out, err = self.run_adb(args, timeout=10)
-        if "opId" in out or "opId" in err:
-            return 0, out, err
-        return code, out, err
-
-    def enable_reverse_tethering(self, serial=None, proxy_ip="127.0.0.1", proxy_port="8888"):
-        """Activa Reverse Tethering (PC → Android)
-        La PC comparte su internet con el dispositivo Android
-        NOTA: Requiere un servidor proxy HTTP ejecutándose en la PC"""
-        proxy_setting = f"{proxy_ip}:{proxy_port}"
-        args = ["-s", serial, "shell", "settings", "put", "global", "http_proxy", proxy_setting] if serial else ["shell", "settings", "put", "global", "http_proxy", proxy_setting]
-        return self.run_adb(args)
-
-    def disable_reverse_tethering(self, serial=None):
-        """Desactiva Reverse Tethering eliminando la configuración de proxy"""
-        args = ["-s", serial, "shell", "settings", "delete", "global", "http_proxy"] if serial else ["shell", "settings", "delete", "global", "http_proxy"]
-        return self.run_adb(args)
-
-    def get_tethering_status(self, serial=None):
-        """Obtiene el estado actual de las funciones de tethering"""
-        # Verificar USB function actual
-        args_usb = ["-s", serial, "shell", "getprop", "sys.usb.config"] if serial else ["shell", "getprop", "sys.usb.config"]
-        code_usb, out_usb, _ = self.run_adb(args_usb)
-        
-        is_rndis = "rndis" in out_usb.lower()
-        if not is_rndis and code_usb == 0:
-            # Check alternativo
-            args_state = ["-s", serial, "shell", "getprop", "sys.usb.state"] if serial else ["shell", "getprop", "sys.usb.state"]
-            _, out_state, _ = self.run_adb(args_state)
-            is_rndis = "rndis" in out_state.lower()
-
-        # Verificar configuración de proxy
-        args_proxy = ["-s", serial, "shell", "settings", "get", "global", "http_proxy"] if serial else ["shell", "settings", "get", "global", "http_proxy"]
-        code_proxy, out_proxy, _ = self.run_adb(args_proxy)
-        
-        proxy_val = out_proxy.strip() if code_proxy == 0 else ""
-        
-        return {
-            "usb_tethering": is_rndis,
-            "reverse_tethering": proxy_val not in ["", ":0", "null"] if code_proxy == 0 else False,
-            "proxy_value": proxy_val if proxy_val not in ["", "null"] else None
-        }
 
     def get_running_processes(self, serial=None):
         """Obtiene la lista de procesos con una lógica de parseo ultra-robusta"""

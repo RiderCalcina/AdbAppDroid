@@ -1,4 +1,4 @@
-# AdbAppDroid v5.0 📱🚀
+# AdbAppDroid v5.1 📱🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
@@ -8,30 +8,31 @@
   <img src="AdbAppDroidInterfaz.png" width="750" alt="AdbAppDroid Interfaz">
 </p>
 
-**AdbAppDroid** Es una potente herramienta portable, diseñada para la gestión de dispositivos Android a través de ADB. Cuenta con una interfaz que ofrece una experiencia fluida y profesional para usuarios entusiastas y avanzados.
+**AdbAppDroid** es una potente herramienta portable diseñada para la gestión de dispositivos Android a través de ADB. Cuenta con una interfaz moderna y fluida que ofrece una experiencia profesional para usuarios entusiastas y avanzados.
 
 ---
 
 ## ✨ Características Principales
 
 ### 📦 Gestión de Aplicaciones
-- **Desinstalación Avanzada**: Elimina aplicaciones de usuario y de sistema (con advertencias de seguridad).
-- **Control de Estado**: Desactiva (congela) o activa aplicaciones sin desinstalarlas.
-- **Limpieza de Datos**: Borra caché y datos de aplicaciones con un solo clic.
-- **Extracción de APKs**: Extrae instaladores directamente desde el dispositivo a tu PC.
-- **Instalación Rápida**: Instala archivos APK de forma sencilla.
+- **Desinstalación Avanzada**: Elimina aplicaciones de usuario y de sistema de forma limpia (debloat con `pm uninstall -k --user 0`).
+- **Control de Estado**: Desactiva (congela) o activa aplicaciones sin borrarlas.
+- **Limpieza de Datos**: Borra la caché y datos de usuario con barra de progreso en vivo.
+- **Extracción Inteligente**: Descarga apps simples como `.apk` y empaqueta de forma automática aplicaciones divididas (Split APKs / App Bundles) en un archivo `.zip` reinstalable.
+- **Instalación Universal**: Soporta archivos `.apk` tradicionales y bundles múltiples (`.zip`, `.xapk`, `.apks`) descomprimiéndolos e instalándolos en bloque.
+- **Diagnóstico Integrado**: Detecta automáticamente errores comunes de instalación (como `INSTALL_FAILED_MISSING_SPLIT`) y ofrece sugerencias rápidas de resolución.
 
 ### 📱 Control de Pantalla y Multimedia
-- **Espejo (Mirroring)**: Visualiza y controla tu dispositivo en tiempo real con alta calidad (vía `scrcpy`).
+- **Espejo (Mirroring)**: Visualiza y controla tu dispositivo en tiempo real con alta calidad (vía `scrcpy`) de forma auto-posicionada.
 - **Capturas de Pantalla**: Toma fotos instantáneas de la pantalla del dispositivo.
-- **Grabación de Video**: Graba sesiones en formato MKV con soporte para audio interno (Android 11+).
-- **Gestión de Salida**: Selecciona fácilmente la carpeta donde se guardarán tus capturas y videos desde el panel de control.
+- **Grabación de Video**: Graba sesiones en formato MKV con soporte para audio interno y perfil optimizado para Xiaomi/HyperOS.
+- **Gestión de Salida**: Configura la ruta del PC donde se almacenarán las capturas y grabaciones en un clic.
 
 ### 🌐 Conectividad y Monitoreo
-- **Depuración Inalámbrica**: Conéctate a tus dispositivos vía WiFi de forma sencilla.
-- **Soporte Multi-dispositivo**: Cambia entre múltiples dispositivos conectados simultáneamente desde el selector superior.
-- **Gráfico de Rendimiento**: Monitoreo en tiempo real del uso de CPU del dispositivo.
-- **Monitor de Procesos**: Visualiza los procesos activos y el consumo de recursos detallado.
+- **Emparejamiento Inalámbrico**: Realiza el emparejamiento de seguridad con código de 6 dígitos (Android 11+) mediante un diálogo emergente dedicado.
+- **Soporte Multi-dispositivo**: Alterna el control instantáneamente entre múltiples dispositivos conectados (USB y Wi-Fi) usando el menú superior.
+- **Gráfico de Rendimiento**: Monitoreo dinámico del uso general de CPU (0-100%).
+- **Monitor de Procesos**: Listado en tiempo real de tareas, PID, RAM y uso de procesador detallado.
 
 ---
 

@@ -142,6 +142,17 @@
             opacity: 0.9;
         }
 
+        ul,
+        ol {
+            margin-bottom: 20px;
+            padding-left: 25px;
+            line-height: 1.8;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
         /* Elements */
         .card {
             background: var(--card-bg);
@@ -161,10 +172,16 @@
             background: rgba(139, 0, 0, 0.05);
         }
 
+        .info-card {
+            border-left: 5px solid var(--accent-blue);
+            background: rgba(59, 142, 208, 0.05);
+        }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 25px;
+            margin-bottom: 25px;
         }
 
         .feature-item {
@@ -178,6 +195,7 @@
             display: block;
             margin-bottom: 10px;
             color: var(--accent-blue);
+            font-size: 1.1rem;
         }
 
         .steps-container {
@@ -253,7 +271,7 @@
     <nav class="sidebar">
         <div class="sidebar-header">
             <h1>AdbAppDroid</h1>
-            <span class="version-badge">v5.0 Multi-Device</span>
+            <span class="version-badge">v5.0</span>
         </div>
         <ul class="nav-links">
             <li><a href="#intro">Bienvenida</a></li>
@@ -261,10 +279,14 @@
             <li><a href="#requisitos">Requisitos</a></li>
             <li><a href="#instalacion">Instalación</a></li>
             <li><a href="#inicio-rapido">Inicio Rápido</a></li>
-            <li><a href="#funciones">Funciones Clave</a></li>
-            <li><a href="#avanzado">Tareas Avanzadas</a></li>
+            <li><a href="#hardware">Estado del Hardware</a></li>
+            <li><a href="#auditoria">Auditoría & Permisos</a></li>
+            <li><a href="#funciones">Gestión de Aplicaciones</a></li>
+            <li><a href="#pantalla">Control de Pantalla</a></li>
+            <li><a href="#noticias">Marquesina RSS</a></li>
+            <li><a href="#avanzado">Logs de Actividad</a></li>
             <li><a href="#problemas">Solución de Problemas</a></li>
-            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#faq">Preguntas Frecuentes</a></li>
             <li><a href="#contacto">Soporte</a></li>
         </ul>
     </nav>
@@ -275,7 +297,7 @@
             <p><strong>Gestión avanzada de dispositivos Android desde Windows</strong></p>
             <p style="margin-top: 20px;">AdbAppDroid elimina la complejidad de la línea de comandos de ADB, ofreciendo
                 una interfaz gráfica moderna que permite gestionar aplicaciones, monitorizar recursos y realizar
-                screen mirroring de pantalla con un solo clic.</p>
+                mirroring de pantalla con un solo clic en entornos de único y múltiples dispositivos.</p>
         </header>
 
         <!-- ENTENDIENDO EL USO DE CPU -->
@@ -310,10 +332,11 @@
         <section id="requisitos">
             <h2>💻 Requisitos del sistema</h2>
             <div class="card">
-                <ul style="list-style: none;">
+                <ul style="list-style: none; padding-left: 0;">
                     <li>🔹 <strong>Sistema Operativo:</strong> Windows 10, 11 (64-bit).</li>
                     <li>🔹 <strong>Hardware:</strong> 4GB RAM Mínimo / 8GB Recomendado.</li>
-                    <li>🔹 <strong>Dependencias:</strong> Incluye ADB Platform-Tools. Requiere drivers USB originales.
+                    <li>🔹 <strong>Dependencias:</strong> Incluye ADB Platform-Tools integrado de forma local. Requiere
+                        drivers USB originales de tu fabricante.
                     </li>
                 </ul>
             </div>
@@ -324,7 +347,7 @@
             <h2>⚙️ Instalación</h2>
             <div class="card">
                 <h3>Descarga y Ejecución</h3>
-                <ol style="margin-left: 20px;">
+                <ol>
                     <li>Descarga el instalador oficial desde <strong>qwertyaserty.com</strong>.</li>
                     <li>Sigue los pasos del asistente de instalación.</li>
                     <li>Inicia <strong>AdbAppDroid.exe</strong> desde el acceso directo.</li>
@@ -342,82 +365,236 @@
                 <div class="step-item">
                     <div class="step-number">1</div>
                     <div>
-                        <h3>Modo Desarrollador</h3>
-                        <p>En el móvil: <strong>Ajustes > Información > Número de compilación</strong> (pulsa 7 veces).
-                            Luego activa <strong>Depuración USB</strong> en Opciones de Desarrollador.</p>
+                        <h3>Modo Desarrollador en tu Teléfono</h3>
+                        <p>En el móvil: ve a <strong>Ajustes > Información del dispositivo > Número de
+                                compilación</strong> y presiona 7 veces consecutivas. Luego, ingresa al nuevo menú
+                            <strong>Opciones de Desarrollador</strong> y activa la **Depuración USB**.</p>
                     </div>
                 </div>
                 <div class="step-item">
                     <div class="step-number">2</div>
                     <div>
-                        <h3>Preparar PC</h3>
-                        <p>Instala los drivers de tu marca y conecta el móvil mediante un cable USB de alta calidad.</p>
+                        <h3>Conexión Física (USB)</h3>
+                        <p>Usa un cable USB original o de buena calidad para conectar tu móvil al ordenador. Asegúrate
+                            de que los controladores USB de tu fabricante estén instalados.</p>
                     </div>
                 </div>
                 <div class="step-item">
                     <div class="step-number">3</div>
                     <div>
-                        <h3>Autorización</h3>
-                        <p>Acepta el mensaje <strong>"¿Permitir depuración USB?"</strong> en la pantalla de tu móvil y
-                            marca "Permitir siempre".</p>
+                        <h3>Autorización de Seguridad</h3>
+                        <p>Al conectar el cable, aparecerá un mensaje en la pantalla del celular: <strong>"¿Permitir
+                                depuración USB?"</strong>. Marca la opción "Permitir siempre de este ordenador" y
+                            presiona Aceptar.</p>
                     </div>
                 </div>
                 <div class="step-item">
                     <div class="step-number">4</div>
                     <div>
-                        <h3>Selección de Dispositivo</h3>
-                        <p>Abre <strong>AdbAppDroid.exe</strong>. Si tienes varios dispositivos, utiliza el <strong>selector desplegable</strong> en la barra superior para elegir cuál deseas controlar. Toda la interfaz se adaptará al dispositivo seleccionado.</p>
+                        <h3>Selección de Dispositivo Activo</h3>
+                        <p>Abre **AdbAppDroid**. Toda la gestión se realiza sobre el dispositivo seleccionado en el
+                            **desplegable superior izquierdo** (que detalla el número de serie y el tipo de conexión USB
+                            o Wi-Fi). Puedes alternar libremente entre ellos si tienes varios conectados.</p>
                     </div>
                 </div>
                 <div class="step-item">
                     <div class="step-number">5</div>
                     <div>
-                        <h3>Conexión Inalámbrica</h3>
-                        <p>Para usarlo sin cables, ingresa la IP y el <strong>Puerto</strong> en la sección WiFi. Una vez conectado, el dispositivo aparecerá automáticamente en el selector superior.</p>
+                        <h3>Conexión y Emparejamiento Wi-Fi (Android 11+)</h3>
+                        <p>Para trabajar sin cables usando el protocolo de seguridad de Android 11 o superior:
+                        <ul>
+                            <li>Haz clic en el enlace azul **"Emparejar dispositivo nuevo"** en la sección Wi-Fi.</li>
+                            <li>Activa la **Depuración Inalámbrica** en tu celular, entra a "Emparejar dispositivo con
+                                código" y copia la Dirección IP, el Puerto de emparejamiento y el Código de 6 dígitos en
+                                el popup modal flotante del programa.</li>
+                            <li>Tras emparejarse con éxito, ingresa la IP y el Puerto de conexión habituales de la
+                                pantalla de Depuración Inalámbrica de tu celular y presiona **Conectar**.</li>
+                        </ul>
+                        </p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- FUNCIONES CLAVE -->
+        <!-- ESTADO DEL HARDWARE -->
+        <section id="hardware">
+            <h2>🖥️ Barra de Especificaciones de Hardware y Estado</h2>
+            <div class="card">
+                <p>En la parte superior derecha de la aplicación se encuentra la **Barra de Especificaciones**, que lee
+                    y reporta instantáneamente los datos técnicos del dispositivo activo seleccionado:</p>
+                <ul>
+                    <li>📱 <strong>Marca y Modelo:</strong> Identificación oficial del fabricante y modelo del
+                        dispositivo (ej. REDMI 23129RA5FL).</li>
+                    <li>💾 <strong>Memoria RAM:</strong> Cantidad de memoria RAM instalada reportada por el kernel.</li>
+                    <li>⚙️ <strong>Procesador (CPU):</strong> Modelo de chipset del dispositivo (ej. Snapdragon SM6225).
+                    </li>
+                    <li>📐 <strong>Resolución:</strong> Resolución de pantalla física actual en píxeles.</li>
+                    <li>🔋 <strong>Batería:</strong> Porcentaje de carga actual de la batería del dispositivo en tiempo
+                        real.</li>
+                    <li>📂 <strong>Almacenamiento:</strong> Consumo de espacio de la partición de datos (Formato: Usado
+                        / Total).</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- AUDITORIA Y PERMISOS -->
+        <section id="auditoria">
+            <h2>🛡️ Inspector de Seguridad y Permisos de Aplicaciones</h2>
+            <div class="card">
+                <p>El panel izquierdo de la aplicación actúa como un **Inspector de Seguridad** en tiempo real. Al
+                    detectar la app que se encuentra activa en el primer plano del dispositivo móvil, carga y clasifica
+                    sus permisos de la siguiente forma:</p>
+                <ul>
+                    <li>✅ <strong>Permisos Concedidos:</strong> Indicados con un check verde en la lista, representan
+                        los accesos que la aplicación tiene activos y usables actualmente.</li>
+                    <li>❌ <strong>Permisos Denegados / Inactivos:</strong> Indicados con una cruz gris y etiqueta <span
+                            class="code">(Inactivo)</span>, representan accesos declarados por la app pero que el
+                        usuario ha denegado en la configuración.</li>
+                    <li>⚠️ <strong>Sección: Permisos Peligrosos:</strong> Lista de forma destacada en la parte superior
+                        aquellos permisos clasificados como de riesgo para la privacidad o seguridad del usuario (ej.
+                        lectura de SMS, localización GPS, cámara, micrófono, almacenamiento).</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- GESTIÓN DE APLICACIONES -->
         <section id="funciones">
-            <h2>🛠️ Funcionalidades Clave</h2>
+            <h2>📦 Gestión de Aplicaciones</h2>
+            <p>AdbAppDroid te permite controlar la aplicación activa mediante el panel **Gestión de Aplicaciones**, que
+                cuenta con los siguientes controles integrados:</p>
+
             <div class="grid">
                 <div class="feature-item">
-                    <b>📦 Gestión de Apps</b>
-                    <p>Lista, desinstala y limpia datos de aplicaciones. Diferencia visual entre apps de sistema y de
-                        usuario.</p>
+                    <b>🗑️ Desinstalar</b>
+                    <p>Elimina la aplicación del dispositivo móvil.
+                        <br>• *Apps de usuario:* Desinstalación estándar automática.
+                        <br>• *Apps de sistema:* El sistema muestra una advertencia de seguridad crítica. Al aceptar,
+                        realiza un debloat de sistema desinstalándola de forma limpia para el usuario activo (<span
+                            class="code">pm uninstall -k --user 0</span>).
+                    </p>
                 </div>
+
                 <div class="feature-item">
-                    <b>💾 Extraer APK</b>
-                    <p>Obtén el archivo instalador de cualquier app de tu móvil y guárdalo en tu PC.</p>
+                    <b>🚫 Desactivar (Congelar)</b>
+                    <p>Inhabilita la ejecución y oculta la aplicación de la interfaz del móvil sin llegar a borrar sus
+                        archivos del almacenamiento. Es ideal para deshabilitar servicios de sistema pesados o bloatware
+                        temporal.</p>
                 </div>
+
                 <div class="feature-item">
-                    <b>📱 Mirroring Simultáneo</b>
-                    <p>Controla múltiples dispositivos a la vez. Puedes abrir ventanas de espejo independientes para cada dispositivo conectado.</p>
+                    <b>🧹 Limpiar Datos</b>
+                    <p>Borra la memoria caché y todo el almacenamiento de datos del usuario (<span class="code">pm
+                            clear</span>), restableciendo la app a su estado original de fábrica. Cuenta con una barra
+                        de progreso que indica el estado del proceso en tiempo real.</p>
                 </div>
+
                 <div class="feature-item">
-                    <b>📡 Conexión WiFi</b>
-                    <p>Gestiona tu dispositivo sin cables ingresando la IP y el <strong>Puerto</strong>
-                        correspondientes.</p>
+                    <b>💾 Extraer APK / Split Bundles</b>
+                    <p>Obtén el archivo instalador de cualquier app de tu móvil y guárdalo en tu PC de forma
+                        inteligente:
+                        <br>• *Apps de un solo archivo:* Se descarga directamente como archivo <span
+                            class="code">.apk</span>.
+                        <br>• *Apps divididas (Split APKs / App Bundles):* El programa descarga todas las partes de la
+                        aplicación (base + recursos) y las empaqueta juntas de forma automatizada en un archivo
+                        comprimido <span class="code">.zip</span> listo para ser reinstalado.
+                    </p>
+                </div>
+
+                <div class="feature-item">
+                    <b>📥 Instalar APK (Simple / Split)</b>
+                    <p>Instala aplicaciones desde tu computadora al dispositivo móvil conectado:
+                        <br>• *Archivos simples:* Instala archivos <span class="code">.apk</span> estándar.
+                        <br>• *Paquetes divididos:* Si seleccionas un archivo <span class="code">.zip</span> (como el
+                        generado en la extracción), <span class="code">.xapk</span> o <span class="code">.apks</span>,
+                        el programa los descomprime e instala simultáneamente usando <span class="code">adb
+                            install-multiple</span>.
+                        <br>• *Diagnóstico inteligente:* Si la instalación falla con <span
+                            class="code">INSTALL_FAILED_MISSING_SPLIT</span>, la interfaz te aconseja desinstalar la
+                        versión existente primero (que usualmente proviene de la Play Store) o verificar el paquete.
+                    </p>
+                </div>
+
+                <div class="feature-item">
+                    <b>📄 Guardar Informe</b>
+                    <p>Exporta toda la información visible del panel izquierdo (nombre de la app, versión, fecha de
+                        instalación, UID, tipo de app y su lista de permisos detallados por estado) en un archivo de
+                        texto <span class="code">.txt</span> estructurado.</p>
+                </div>
+
+                <div class="feature-item">
+                    <b>📊 Monitor de procesos</b>
+                    <p>Abre una ventana dedicada de diagnóstico técnico que consulta en intervalos cortos las tareas que
+                        se ejecutan en segundo plano en el dispositivo. Muestra una tabla con el Nombre, PID, uso de CPU
+                        por núcleo y memoria RAM. Puedes ordenar la tabla haciendo clic en las columnas para identificar
+                        rápidamente qué aplicación está ralentizando el terminal.</p>
                 </div>
             </div>
-            <div class="card warning-card" style="margin-top: 30px;">
-                <p>⚠️ <strong>Aviso Crítico:</strong> AdbAppDroid mostrará una advertencia al intentar modificar
-                    aplicaciones críticas del sistema Android.</p>
+
+            <div class="card warning-card">
+                <p>⚠️ <strong>Aviso de Seguridad:</strong> Al modificar aplicaciones marcadas como "Aplicaciones del
+                    Sistema" (Desinstalar/Desactivar), AdbAppDroid solicitará una confirmación doble para prevenir daños
+                    accidentales que puedan requerir un restablecimiento de fábrica del teléfono.</p>
+            </div>
+        </section>
+
+        <!-- CONTROL DE PANTALLA -->
+        <section id="pantalla">
+            <h2>📱 Control y Espejo de Pantalla</h2>
+            <div class="grid">
+                <div class="feature-item">
+                    <b>▶️ Espejo (Mirroring con scrcpy)</b>
+                    <p>Abre una ventana de control de alta definición en tiempo real. AdbAppDroid calcula el tamaño y la
+                        resolución de la pantalla de tu móvil para colocar la ventana de espejo de forma automática a la
+                        derecha de la interfaz sin tapar tus controles.</p>
+                </div>
+                <div class="feature-item">
+                    <b>📸 Capturar Pantalla</b>
+                    <p>Toma una foto de la pantalla actual del móvil de forma instantánea y la guarda localmente con
+                        formato de fecha y hora.</p>
+                </div>
+                <div class="feature-item">
+                    <b>🎥 Grabar Pantalla</b>
+                    <p>Graba un video fluido de lo que ocurre en tu dispositivo móvil en formato MKV (resistente a
+                        interrupciones). Dispone de un perfil de compatibilidad de audio específico para dispositivos
+                        Xiaomi/HyperOS.</p>
+                </div>
+                <div class="feature-item">
+                    <b>📁 Seleccionar Carpeta</b>
+                    <p>Permite configurar la ruta por defecto del ordenador donde se guardarán los informes, los videos
+                        grabados y las capturas de pantalla.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- MARQUESINA RSS -->
+        <section id="noticias">
+            <h2>📰 Feed RSS y Marquesina de Actualizaciones</h2>
+            <div class="card">
+                <p>En el extremo inferior del panel de control derecho se integra una **Marquesina Dinámica (Feed RSS)**
+                    que lee en tiempo real el feed de noticias desde la web del desarrollador **QwertyAserty.com**:</p>
+                <ul>
+                    <li>Muestra títulos de actualizaciones, parches de seguridad y mejoras técnicas del proyecto en
+                        texto marquesina de desplazamiento continuo.</li>
+                    <li>Es cliqueable, permitiendo ir al blog de actualizaciones de forma directa en el navegador.</li>
+                    <li>Posee un motor de cargador secundario redundante (fallback automático a <span
+                            class="code">urllib</span>) en caso de que existan problemas con certificados SSL locales o
+                        fallos de librerías en el equipo.</li>
+                </ul>
             </div>
         </section>
 
         <!-- AVANZADO -->
         <section id="avanzado">
-            <h2>🚀 Tareas Avanzadas</h2>
+            <h2>⚙️ Diagnóstico y Auditoría</h2>
             <div class="card">
-                <p>🔹 <strong>Monitor de Procesos:</strong> Visualiza en tiempo real el consumo de CPU y RAM de cada
-                    proceso activo.</p>
-                <p>🔹 <strong>Logs de Actividad:</strong> Consulta <span class="code">activity_log.txt</span> para
-                    auditar todas las acciones del programa.</p>
-                <p>🔹 <strong>Captura y Grabación:</strong> Realiza capturas de pantalla y videos en alta calidad de
-                    forma instantánea.</p>
+                <h3>📈 Uso de CPU Normalizado</h3>
+                <p>El panel inferior derecho muestra una gráfica continua que monitoriza la carga general del
+                    dispositivo en un rango del 0% al 100%, facilitando la detección visual de picos de rendimiento.</p>
+
+                <h3 style="margin-top: 30px;">📄 Historial y Logs de Actividad</h3>
+                <p>Todas las acciones, conexiones y comandos enviados por el aplicativo se registran de forma
+                    transparente con su marca de tiempo en el archivo local <span class="code">activity_log.txt</span>
+                    en la raíz del programa, ideal para llevar un control del mantenimiento de tus dispositivos.</p>
             </div>
         </section>
 
@@ -425,22 +602,29 @@
         <section id="problemas">
             <h2>❓ Solución de Problemas</h2>
             <div class="card">
-                <p>❌ <strong>No detecta dispositivo:</strong> Revisa el cable USB o reinstala los drivers del
-                    fabricante.</p>
-                <p>❌ <strong>Error en WiFi:</strong> Ambos deben estar en la misma red y la opción de WiFi ADB debe
-                    estar activa.</p>
-                <p>❌ <strong>Permiso Denegado:</strong> Borra la autorización del PC en el móvil y vuelve a conectar.
-                </p>
+                <p>❌ <strong>El dispositivo aparece como "No autorizado" (Unauthorized):</strong> Revisa la pantalla de
+                    tu móvil. Debes aceptar la clave de huella digital RSA y permitir la depuración USB.</p>
+                <p>❌ <strong>Error INSTALL_FAILED_MISSING_SPLIT:</strong> Ocurre si intentas reinstalar una aplicación
+                    de la Play Store sin sus partes de idioma o recursos. Desinstala primero la app de tu celular
+                    mediante AdbAppDroid y vuelve a intentar la instalación.</p>
+                <p>❌ <strong>Dispositivos fantasma en Wi-Fi:</strong> El sistema cuenta con filtros de red mejorados que
+                    descartan y desconectan adecuadamente los puertos mDNS inalámbricos una vez desconectas el
+                    dispositivo, evitando registros duplicados en el desplegable superior.</p>
             </div>
         </section>
 
         <!-- FAQ -->
         <section id="faq">
             <h2>💬 Preguntas Frecuentes</h2>
-            <h3>¿Requiere Root?</h3>
-            <p>No. Todas las funciones trabajan bajo el protocolo ADB estándar sin necesidad de root.</p>
-            <h3>¿Es compatible con Android 14+?</h3>
-            <p>Sí, está totalmente optimizado para las últimas versiones de Android.</p>
+            <h3>¿AdbAppDroid modifica archivos del sistema operativo?</h3>
+            <p>No. Trabaja enteramente mediante la API oficial de ADB proporcionada por Google, garantizando que el
+                sistema de tu teléfono celular se mantenga estable e inalterado.</p>
+            <h3>¿Se pueden conectar varios teléfonos a la vez?</h3>
+            <p>Sí, la interfaz está diseñada para admitir múltiples conexiones en paralelo (USB y Wi-Fi
+                simultáneamente), permitiéndote alternar las operaciones al instante con el selector superior.</p>
+            <h3>¿Funciona con dispositivos sin Root?</h3>
+            <p>Sí. AdbAppDroid no requiere privilegios de Root. Funciona en cualquier dispositivo Android comercial
+                estándar.</p>
         </section>
 
         <section id="contacto">
@@ -452,8 +636,8 @@
         </section>
 
         <footer>
-            <p>Diseñado por <strong>QWERTY-ASERTY</strong> &copy; 2026</p>
-            <p style="opacity: 0.5; font-size: 0.8rem; margin-top: 10px;">AdbAppDroid v5.0 Multi-Device Edition</p>
+            <p><strong>QWERTY-ASERTY</strong></p>
+            <p style="opacity: 0.5; font-size: 0.8rem; margin-top: 10px;">AdbAppDroid v5.0</p>
         </footer>
     </main>
 </body>

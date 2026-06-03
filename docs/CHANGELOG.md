@@ -2,6 +2,21 @@
 
 Historial de versiones y mejoras de **AdbAppDroid**.
 
+## [v5.1] - 2026-06-03
+### ✨ Novedades
+- **Emparejamiento Inalámbrico con Código (Android 11+)**: Se ha integrado una nueva ventana flotante modal (`CTkPairingDialog`) que permite realizar el emparejamiento de seguridad mediante código de 6 dígitos de forma nativa.
+- **Extracción Completa de App Bundles (Split APKs)**: Al extraer aplicaciones compuestas por múltiples archivos (Split APKs), el sistema las descarga todas y las empaqueta automáticamente en un archivo `.zip` instalable.
+- **Instalador Universal (Split APK / APKs / XAPK / ZIP)**: Soporte completo para instalar paquetes comprimidos de aplicaciones. Descomprime e instala las partes en bloque mediante `adb install-multiple`.
+- **Diagnóstico Inteligente de Instalación**: Detección automática del error `INSTALL_FAILED_MISSING_SPLIT` con sugerencias dinámicas en la consola de la UI.
+- **Limpieza de Datos con Barra de Progreso**: El botón "Limpiar Datos" ahora ofrece retroalimentación del progreso en vivo y reporte de estado.
+- **Desinstalación Segura de Apps de Sistema**: Integración de comando debloat (`pm uninstall -k --user 0`) al forzar la desinstalación de aplicaciones del sistema.
+
+### 🔧 Mejoras y Correcciones
+- **Filtro de Desconexión Wi-Fi mDNS**: Se mejoró la lógica de limpieza para desconectar los seriales virtuales de tipo mDNS/TLS al desconectar dispositivos inalámbricos, evitando clones y dispositivos fantasma en la lista.
+- **Abreviación Estética en Interfaz**: Se redujo el texto de múltiples dispositivos a `(MULT.)` y se truncaron dinámicamente las etiquetas de nombres de paquetes largos para evitar desbordamientos visuales.
+- **Corrección de Argumentos en Gestión**: Corregido un fallo crítico de `TypeError` en `uninstall`, `disable_app` y `extract` al inyectar el parámetro `active_serial` correspondiente en `get_app_details`.
+- **Eliminación de Tethering**: Remoción completa de código huérfano y funcionalidades inactivas relacionadas con Tethering.
+
 ## [v5.0] - 2026-04-29
 ### ✨ Novedades (Multi-Device Era)
 - **Gestión Multi-Dispositivo**: Implementación de soporte para múltiples dispositivos conectados simultáneamente vía USB o WiFi.

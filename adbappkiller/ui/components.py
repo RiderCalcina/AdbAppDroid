@@ -441,3 +441,111 @@ class CTkWarningDialog(ctk.CTkToplevel):
         self.wait_window(self)
         return self.result
 
+
+class CTkPairingDialog(ctk.CTkToplevel):
+    def __init__(self, master, adb_controller, default_ip="", **kwargs):
+        super().__init__(master, **kwargs)
+        self.title("Emparejar Dispositivo WiFi")
+        self.adb = adb_controller
+        self.transient(master)
+        
+        try:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            icon_path = os.path.join(base_dir, "assets", "icon.ico")
+            if os.path.exists(icon_path):
+                self.after(200, lambda: self.iconbitmap(icon_path))
+        except Exception:
+            pass
+
+        self.geometry("380x360")
+        self.resizable(False, False)
+        self.attributes("-topmost", True)
+        self.grab_set()
+        
+        self.update_idletasks()
+        if master.winfo_viewable():
+            x = master.winfo_x() + (master.winfo_width() // 2) - 190
+            y = master.winfo_y() + (master.winfo_height() // 2) - 180
+            self.geometry(f"+{x}+{y}")
+            
+        self.configure(fg_color=THEME["BG"])
+        
+        self.title_label = ctk.CTkLabel(self, text="📡 EMPAREJAMIENTO DE DISPOSITIVO", font=("Segoe UI", 12, "bold"), text_color=THEME["ACCENT"])
+        self.title_label.pack(pady=(15, 10))
+        
+        self.instructions = ctk.CTkLabel(self, text="Activa 'Depuración inalámbrica' en el teléfono y selecciona 'Emparejar con código'. Introduce los datos a continuación:", font=("Segoe UI", 10), text_color=THEME["TEXT_SEC"], wraplength=320, justify="center")
+        self.instructions.pack(pady=(0, 15))
+        
+        self.form_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.form_frame.pack(fill="x", padx=30, pady=5)
+        self.form_frame.grid_columnconfigure(0, weight=1)
+        self.form_frame.grid_columnconfigure(1, weight=2)
+        
+        ctk.CTkLabel(self.form_frame, text="Dirección IP:", font=("Segoe UI", 11, "bold"), text_color=THEME["TEXT_MAIN"], anchor="w").grid(row=0, column=0, sticky="ew", pady=5)
+        self.ip_entry = ctk.CTkEntry(self.form_frame, fg_color=THEME["BG"], border_color=THEME["BORDER"], text_color=THEME["TEXT_MAIN"], font=("Segoe UI", 11), height=28)
+        self.ip_entry.grid(row=0, column=1, sticky="ew", pady=5)
+        self.ip_entry.insert(0, default_ip)
+        
+        ctk.CTkLabel(self.form_frame, text="Puerto Emp.:", font=("Segoe UI", 11, "bold"), text_color=THEME["TEXT_MAIN"], anchor="w").grid(row=1, column=0, sticky="ew", pady=5)
+        self.port_entry = ctk.CTkEntry(self.form_frame, placeholder_text="Ej: 38217", placeholder_text_color=THEME["TEXT_SEC"], fg_color=THEME["BG"], border_color=THEME["BORDER"], text_color=THEME["TEXT_MAIN"], font=("Segoe UI", 11), height=28)
+        self.port_entry.grid(row=1, column=1, sticky="ew", pady=5)
+        
+        ctk.CTkLabel(self.form_frame, text="Código Emp.:", font=("Segoe UI", 11, "bold"), text_color=THEME["TEXT_MAIN"], anchor="w").grid(row=2, column=0, sticky="ew", pady=5)
+        self.code_entry = ctk.CTkEntry(self.form_frame, placeholder_text="6 dígitos", placeholder_text_color=THEME["TEXT_SEC"], fg_color=THEME["BG"], border_color=THEME["BORDER"], text_color=THEME["TEXT_MAIN"], font=("Segoe UI", 11), height=28)
+        self.code_entry.grid(row=2, column=1, sticky="ew", pady=5)
+        
+        self.status_label = ctk.CTkLabel(self, text="", font=("Segoe UI", 11, "bold"), text_color=THEME["TEXT_SEC"])
+        self.status_label.pack(pady=10)
+        
+        self.btn_frame = ctk.CTkFrame(self, fg_color=THEME["CARD"], height=60, corner_radius=0)
+        self.btn_frame.pack(fill="x", side="bottom")
+        self.btn_frame.pack_propagate(False)
+        
+        self.btn_cancel = ctk.CTkButton(self.btn_frame, text="Cancelar", fg_color=THEME["BUTTON_SECONDARY"], hover_color=THEME["BUTTON_SECONDARY_HOVER"], text_color=THEME["TEXT_MAIN"], command=self.on_cancel, width=100, font=("Segoe UI", 12, "bold"), corner_radius=8)
+        self.btn_cancel.pack(side="right", padx=15, pady=15)
+        
+        self.btn_pair = ctk.CTkButton(self.btn_frame, text="Emparejar", fg_color=THEME["ACCENT"], hover_color=THEME["ACCENT_HOVER"], text_color="#FFFFFF", command=self.on_pair, width=100, font=("Segoe UI", 12, "bold"), corner_radius=8)
+        self.btn_pair.pack(side="right", padx=10, pady=15)
+        
+        self.protocol("WM_DELETE_WINDOW", self.on_cancel)
+        self.result = False
+
+    def on_pair(self):
+        ip = self.ip_entry.get().strip()
+        port = self.port_entry.get().strip()
+        code = self.code_entry.get().strip()
+        
+        if not ip or not port or not code:
+            self.status_label.configure(text="❌ Completa todos los campos", text_color=THEME["DANGER"])
+            return
+            
+        full_endpoint = f"{ip}:{port}"
+        self.status_label.configure(text="⏳ Emparejando dispositivo...", text_color=THEME["WARNING"])
+        self.btn_pair.configure(state="disabled")
+        
+        def task():
+            code_res, out, err = self.adb.pair_wireless(full_endpoint, code)
+            success = "successfully paired" in out.lower() or "successfully paired" in err.lower() or code_res == 0
+            if success:
+                self.after(0, lambda: self.status_label.configure(text="✅ Emparejado con éxito", text_color=THEME["SUCCESS"]))
+                self.result = True
+                self.after(1500, self.close_success)
+            else:
+                self.after(0, lambda: self.status_label.configure(text="❌ Error de emparejamiento", text_color=THEME["DANGER"]))
+                self.after(0, lambda: self.btn_pair.configure(state="normal"))
+                
+        threading.Thread(target=task, daemon=True).start()
+
+    def close_success(self):
+        self.grab_release()
+        self.destroy()
+
+    def on_cancel(self):
+        self.result = False
+        self.grab_release()
+        self.destroy()
+
+    def get_result(self):
+        self.wait_window(self)
+        return self.result
+
